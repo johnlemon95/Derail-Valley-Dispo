@@ -288,3 +288,79 @@ Das Backend und die Datenbank müssen die Erstellung frei definierter **Custom J
 - **Beliebige Routing-Punkte:** Ein Custom Job kann individuelle Start- und Zielorte (auch Freitext-Gleisbezeichnungen) beinhalten, die über die Standard-Stationskürzel hinausgehen.
 - **Kennzeichnung im UI:** Custom Jobs müssen auf dem Job Board durch ein visuelles Badge (`CUSTOM`) hervorgehoben werden, damit Operatoren sofort erkennen, dass es sich um ein manuelles oder spezialisiertes Logistik-Szenario handelt.
 - **Admin-Exklusivität:** Das Erstellen, Klonen, Bearbeiten und Löschen von Custom Jobs ist ausschließlich der Rolle **Host/Admin (Spieler A)** vorbehalten.
+
+---
+
+## 10. Empfohlene Projekt- & Ordnerstruktur (Folder Structure)
+
+Das Projekt muss strikt modular aufgebaut sein, um eine saubere Trennung von Belangen (Separation of Concerns) zwischen Datenmodell, Business-Logik (Backend) und Benutzeroberfläche (Frontend) zu gewährleisten.
+
+```text
+derail_valley_dispatcher/
+│
+├── config/                     # Globale Konfigurationen & Umgebungs-Variablen
+│   ├── __init__.py
+│   ├── settings.py             # Server-Ports, Timeouts, Log-Level
+│   └── stations_db.json        # Master-Data für Stationen, Gleise & Loks
+│
+├── common/                     # Gemeinsam genutzter Code (Backend & Frontend)
+│   ├── __init__.py
+│   ├── models/                 # Pydantic / Daten-Modelle (Single Source of Truth)
+│   │   ├── __init__.py
+│   │   ├── job.py              # Schema für Standard- & Custom-Jobs
+│   │   ├── fleet.py            # Schema für Triebfahrzeuge & Status
+│   │   ├── station.py          # Schema für Stationen & Gleisbelegung
+│   │   └── user.py             # Schema für User, Rollen & Tokens
+│   └── enums.py                # Enums für JobStatus, VehicleType, StationCode
+│
+├── backend/                    # Server-Applikation (Läuft bei Spieler A / Host)
+│   ├── __init__.py
+│   ├── main.py                 # Server Entry Point (FastAPI / Server Startup)
+│   ├── api/                    # REST-API Endpunkte (Admin & Base Routes)
+│   │   ├── __init__.py
+│   │   ├── admin_routes.py     # Geschützte Admin-Aktionen (Custom Jobs, Master Data)
+│   │   ├── job_routes.py       # REST Endpunkte für Jobs
+│   │   └── fleet_routes.py     # REST Endpunkte für Fuhrpark
+│   ├── websockets/             # Live-Synchronisation & Event-Handling
+│   │   ├── __init__.py
+│   │   ├── connection_manager.py # Verwalter aller aktiven Client-Verbindungen
+│   │   └── event_handlers.py   # Handler für Claim, Release, Update Events
+│   ├── services/               # Business- & Locking-Logik
+│   │   ├── __init__.py
+│   │   ├── claim_service.py    # Atomare Transaktionslogik & Mutex-Locks
+│   │   ├── job_service.py      # Verwaltung von Standard- & Custom-Jobs
+│   │   └── auth_service.py     # Token-Prüfung & RBAC-Rechtevergabe
+│   └── database/               # Datenhaltung
+│       ├── __init__.py
+│       ├── db_session.py       # DB-Connection (SQLite / SQLAlchemy Engine)
+│       └── repository.py       # DB-Zugriffsschicht (CRUD Operationen)
+│
+├── frontend/                   # Client-Applikation (Läuft bei Spieler A, B, C, D)
+│   ├── __init__.py
+│   ├── main.py                 # Client Entry Point & UI-Init
+│   ├── network/                # Client-seitige Netzwerkanbindung
+│   │   ├── __init__.py
+│   │   ├── api_client.py       # REST API Aufrufe an den Host
+│   │   └── ws_client.py        # WebSocket Listener für Live-Updates
+│   ├── state/                  # Lokaler UI-State
+│   │   ├── __init__.py
+│   │   └── app_state.py        # Reaktives State-Management des Clients
+│   └── ui/                     # Benutzeroberfläche & Layouts
+│       ├── __init__.py
+│       ├── components/         # Wiederverwendbare UI-Elemente (Cards, Badges)
+│       ├── views/              # Haupt-Screens / Tabs
+│       │   ├── job_board_view.py    # Tab 1: Auftrags-Tafel & Claiming
+│       │   ├── fleet_view.py        # Tab 2: Fuhrpark-Monitor
+│       │   ├── station_view.py      # Tab 3: Gleis- & Stations-Dispo
+│       │   └── admin_view.py        # Tab 4: Host/Admin Dashboard
+│       └── styles/             # UI-Styling, Themes & Farbschemata
+│
+├── tests/                      # Automatisierte Tests
+│   ├── test_claiming_lock.py   # Tests für Race-Conditions beim Claiming
+│   ├── test_rbac.py            # Tests für Rechteprüfung (Admin vs Client)
+│   └── test_custom_jobs.py     # Tests für Erstellung & Validierung von Custom Jobs
+│
+├── INSTRUCTIONS.md             # System-Instruction für Claude Sonnet
+├── requirements.txt            # Python Dependencies (FastAPI, PySide6, etc.)
+└── README.md                   # Setup- & Startanleitung für Host und Clients
+```
