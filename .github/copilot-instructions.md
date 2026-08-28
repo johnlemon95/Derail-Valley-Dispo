@@ -94,3 +94,61 @@ Mehrere Operatoren (Spieler B, C, D) sehen zeitgleich dieselben verfügbaren Auf
 4. **Edge-Case Handling (Sonderfälle):**
    - **Disconnect-Handling:** Bricht die Verbindung eines Players während eines aktiven Auftrags ab, soll nach einem konfigurierbaren Timeout der Auftrag automatisch wieder auf `UNCLAIMED` zurückgesetzt werden.
    - **Freigabe:** Ein Operator muss die Möglichkeit haben, einen angenommenen Auftrag manuell wieder in den globalen Pool zurückzugeben.
+
+---
+
+## 7. Rollen- & Berechtigungskonzept (RBAC)
+
+Das System unterscheidet strikt zwischen zwei Hauptrollen: **Host/Admin (Spieler A)** und **Operator/Client (Spieler B, C, D)**. Die Rechteprüfung muss sowohl im Frontend (UI-Elemente ausblenden/sperren) als auch zwingend im Backend (API-Endpunkte & WebSocket-Befehle absichern) durchgesetzt werden.
+
+---
+
+### 7.1 Rollenmatrix Overview
+
+| Funktion / Bereich | Host / Admin (Spieler A) | Operator / Client (Spieler B, C, D) |
+| :--- | :---: | :---: |
+| **Aufträge (Jobs)** | | |
+| Verfügbare Aufträge einsehen |  Ja |  Ja |
+| Aufträge annehmen / freigeben (Claim/Release) |  Ja |  Ja (nur eigene) |
+| Neue Aufträge manuell anlegen / generieren |  Ja |  Nein |
+| Aufträge bearbeiten / stornieren / löschen |  Ja |  Nein |
+| Auftrags-Status manuell überschreiben (z.B. Force-Complete) |  Ja |  Nein |
+| **Fuhrpark (Loks & Fahrzeuge)** | | |
+| Fahrzeugstandorte & Zustände einsehen |  Ja |  Ja |
+| Fahrzeugstatus aktualisieren (z.B. Tank, Schaden) |  Ja |  Ja |
+| Neue Fahrzeuge anlegen / aus Fleet entfernen |  Ja |  Nein |
+| Master-Daten der Fahrzeuge konfigurieren (z.B. Typ, Leistung) |  Ja |  Nein |
+| **Stationen & Gleise** | | |
+| Belegungsplan / Gleisbelegung einsehen |  Ja |  Ja |
+| Gleisstatus aktualisieren (z.B. "Gleis GF-A1L belegt") |  Ja |  Ja |
+| Neue Stationen / Gleise im System anlegen/ändern |  Ja |  Nein |
+| **System & Session** | | |
+| User-Verwaltung (Spieler anlegen, Kicken, Passwort-Reset) |  Ja |  Nein |
+| Session-Einstellungen (z.B. Disconnect-Timeout festlegen) |  Ja |  Nein |
+| Server-Logs & Aktivitäts-Protokoll einsehen |  Ja |  Nein |
+
+---
+
+### 7.2 Backend-Anforderungen für die Rechtevergabe
+
+1. **Token-basierte Authentifizierung:**
+   - Jeder Spieler authentifiziert sich beim Verbindungsaufbau (Session-Token oder JWT).
+   - Der Token enthält die Rolle (`Admin` vs. `Operator`) sowie die eindeutige `Player_ID`.
+
+2. **Strict Route Protection:**
+   - Alle geschützten Schreib-Endpunkte des Backends (z.B. `/api/admin/*` oder administrative WebSocket-Actions wie `create_job`, `delete_vehicle`, `kick_player`) müssen vor Ausführung prüfen, ob der Anfragende die Rolle `Admin` besitzt.
+   - Versucht ein Client eine Admin-Aktion auszuführen, bricht das Backend dies mit einem Rechte-Fehler (`403 Forbidden` bzw. WebSocket-Error) ab.
+
+3. **Multi-Tenancy für Client-Aktionen:**
+   - Operatoren dürfen nur den eigenen Auftragsstatus ändern (z.B. den eigenen Job als "Erledigt" markieren oder den eigenen Job freigeben).
+   - Ein Fremd-Release (Spieler B bricht Auftrag von Spieler C ab) ist NUR dem Host/Admin gestattet.
+
+---
+
+### 7.3 Frontend-UI Verhalten
+
+1. **Dynamische Navigation / Views:**
+   - Wenn sich ein Client einloggt, wird der Reiter "Backend / Administration" in der Benutzeroberfläche gar nicht erst gerendert oder ausgeblendet.
+2. **Context-Sensitive Actions:**
+   - Buttons wie "Auftrag stornieren" oder "Neues Gleis hinzufügen" sind für Clients unsichtbar.
+   - Aufträge, die bereits von einem anderen Spieler reserviert sind, zeigen für andere Clients den Interaktions-Button als graues/deaktiviertes `Belegt von [Spielername]` an.
