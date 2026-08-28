@@ -1,0 +1,27 @@
+{
+  "stations": [
+    {"code": "HB",  "name": "Harbor & Military Base",  "description": "Großer Hafen, Militärbereich, Container & Öl"},
+    {"code": "GF",  "name": "Goods Factory & Town",    "description": "Güterfabrik, Stadtbereich"},
+    {"code": "CS",  "name": "Steel Mill",               "description": "Stahlwerk (City Steel), Erz & Metallverarbeitung"},
+    {"code": "FF",  "name": "Food Factory & Town",      "description": "Lebensmittelfabrik"},
+    {"code": "SW",  "name": "Sawmill",                  "description": "Sägewerk, Holzverarbeitung"},
+    {"code": "MF",  "name": "Machine Factory & Town",   "description": "Maschinenfabrik"},
+    {"code": "CM",  "name": "Coal Mine",                "description": "Kohlemine"},
+    {"code": "IME", "name": "Iron Ore Mine East",       "description": "Eisenerzmine Ost"},
+    {"code": "IMW", "name": "Iron Ore Mine West",       "description": "Eisenerzmine West"},
+    {"code": "FS",  "name": "Forest South",             "description": "Forstwirtschaft Süd"},
+    {"code": "FM",  "name": "Farm",                     "description": "Landwirtschaft"},
+    {"code": "OWC", "name": "Oil Well Central",         "description": "Ölquelle Central"},
+    {"code": "OR",  "name": "Oil Refinery",             "description": "Ölraffinerie"}
+  ],
+  "vehicle_types": [
+    {"type": "BE2",      "name": "Microshunter",              "drive": "Elektro (Batterie)",    "role": "Leichtes Rangieren auf Kurzstrecken"},
+    {"type": "DE2",      "name": "Shunter",                   "drive": "Diesel-Elektrik",       "role": "Rangierlok & leichte Übergabefahrten"},
+    {"type": "DH4",      "name": "Road Switcher",             "drive": "Diesel-Hydraulik",      "role": "Mittelschwere Strecken- & Rangierdienste"},
+    {"type": "DE6",      "name": "Heavy Freight",             "drive": "Diesel-Elektrik",       "role": "Schwere Güterzüge / Hauptstrecken"},
+    {"type": "DE6_SLUG", "name": "Heavy Diesel Slug",         "drive": "Traktionserweiterung",  "role": "Zusatz-Schubkraft für DE6 auf Steigungen"},
+    {"type": "S060",     "name": "Steam Locomotive (Light)",  "drive": "Dampf",                 "role": "Rangier-Dampflok"},
+    {"type": "S282",     "name": "Steam Locomotive (Heavy)",  "drive": "Dampf",                 "role": "Schwere Strecken-Dampflok"},
+    {"type": "HC",       "name": "Handcar",                   "drive": "Manuell",               "role": "Draisinen-Fahrzeug für Inspektionen"}
+  ]
+}
