@@ -152,3 +152,69 @@ Das System unterscheidet strikt zwischen zwei Hauptrollen: **Host/Admin (Spieler
 2. **Context-Sensitive Actions:**
    - Buttons wie "Auftrag stornieren" oder "Neues Gleis hinzufügen" sind für Clients unsichtbar.
    - Aufträge, die bereits von einem anderen Spieler reserviert sind, zeigen für andere Clients den Interaktions-Button als graues/deaktiviertes `Belegt von [Spielername]` an.
+
+---
+
+## 8. Frontend- & UI/UX-Spezifikation
+
+Das Frontend dient als zentrales „Dispo-Pult" für die Spieler. Das Layout muss übersichtlich, schnörkellos und auf schnelle Bedienbarkeit während der Fahrt oder beim Rangieren ausgelegt sein.
+
+---
+
+### 8.1 Hauptnavigations-Struktur
+
+Die Oberfläche gliedert sich in drei Haupt-Reiter (Tabs) für den Operation-Betrieb sowie einen geschützten Admin-Reiter:
+
+1. **[Tab 1] Auftrags-Tafel (Job Board):** Hauptfenster für alle Operatoren.
+2. **[Tab 2] Fuhrpark-Monitor (Fleet View):** Übersicht über Triebfahrzeuge und Standorte.
+3. **[Tab 3] Gleis- & Stations-Dispo (Station Overview):** Karten- oder Tabellenansicht der Gleise.
+4. **[Tab 4] Administration (NUR für Host / Spieler A sicht- und klickbar):** Userverwaltung, Master-Daten, Globales Event-Log.
+
+---
+
+### 8.2 Detaillierte UI-Komponenten
+
+#### 1. Die Auftrags-Tafel (Job Board)
+Das Job Board ist als zweigeteilte Ansicht (Split-Screen oder Master-Detail-View) aufgebaut:
+
+- **Linke Spalte (Auftrags-Pool):**
+  - **Filter & Suche:** Filterung nach Station (z. B. GF, CS, HB), Auftragstyp (Shunting, Logistics, Freight) und Frachtgut.
+  - **Auftrags-Karten / Liste:**
+    - **Titel:** `[Auftrags-ID]` (z. B. `GF-LOG-01`)
+    - **Route:** `[Start-Station]` ➔ `[Ziel-Station]`
+    - **Belohnung / Bezahlung:** In-Game Währung ($)
+    - **Status-Badge:**
+      - `VERFÜGBAR` (Grün)
+      - `BELEGT von [Spieler B]` (Gelb / Inaktiviert)
+      - `IN TRANSPORT` (Blau)
+- **Rechte Spalte (Auftrags-Details & Aktionen):**
+  - **Gleis-Details:** Exakte Start-Gleise (z. B. `GF-A1L`) und Ziel-Gleise (z. B. `CS-B2S`).
+  - **Zugdaten:** Gesamtlänge (Meter), Gesamtgewicht (Tonnen), Anzahl der Wagen.
+  - **Aktions-Buttons (Kontextabhängig):**
+    - `[Auftrag annehmen]` (Nur klickbar wenn Status = VERFÜGBAR).
+    - `[Auftrag freigeben / Stornieren]` (Nur für den Spieler klickbar, der den Job aktuell hält, oder für Admin).
+    - `[Als Erledigt markieren]` (Verschiebt Job ins Archiv).
+
+#### 2. Der Fuhrpark-Monitor (Fleet View)
+Eine tabellarische Übersicht aller Fahrzeuge auf der Karte:
+- **Spalten:** `Fahrzeug-ID` (z. B. `DE2-01`), `Typ` (DE2, DH4, S282, DE6, etc.), `Aktueller Standort` (Station / Gleis), `Zustand` (Treibstoff %, Wartungsbedarf), `Zuweisung` (Frei / Zugewiesen an Spieler X).
+- **Aktionen für Operatoren:** Schnelles Aktualisieren des Standorts oder Treibstoffstands per Dropdown/Eingabe.
+
+#### 3. Gleis- & Stations-Dispo (Station Overview)
+- **Visuelle Kartenansicht / Schematische Gleis-Übersicht:**
+  - Schematisches Layout der Derail Valley Hauptstationen (HB, GF, CS, SM, MF, SW, etc.).
+  - Übersicht pro Station, welche Gleise aktuell belegt sind (z. B. `GF-A2S` = belegt durch Zug für Job `GF-LOG-01`).
+- **Verhinderung von Rangier-Konflikten:** Operatoren sehen sofort, ob ihr Zielgleis frei ist oder von einem Mitspieler belegt wird.
+
+---
+
+### 8.3 Benachrichtigungen & Live-Feedback (UX)
+
+Da Aktionen anderer Spieler in Echtzeit synchronisiert werden, muss die UI visuelles Feedback liefern:
+
+1. **Toast-Notifications (Pop-up Meldungen):**
+   - Einblendung oben rechts bei wichtigen Events (z. B. *"Spieler C hat Auftrag HB-FR-04 angenommen"*, *"Neuer Auftrag an GF verfügbar"*).
+2. **Dynamische Farb- & Zustandsänderungen:**
+   - Wenn Spieler B einen Auftrag annimmt, während Spieler C ihn anschaut, wechselt der Button `[Auftrag annehmen]` im selben Moment ohne Reload zu `[Belegt von Spieler B]` und wird ausgegraut.
+3. **Verbindungs-Statusanzeige:**
+   - Ein permanenter Indikator in der Statusleiste (Grün = Verbunden, Rot = Verbindung zum Host unterbrochen).
