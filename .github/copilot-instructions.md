@@ -218,3 +218,73 @@ Da Aktionen anderer Spieler in Echtzeit synchronisiert werden, muss die UI visue
    - Wenn Spieler B einen Auftrag annimmt, während Spieler C ihn anschaut, wechselt der Button `[Auftrag annehmen]` im selben Moment ohne Reload zu `[Belegt von Spieler B]` und wird ausgegraut.
 3. **Verbindungs-Statusanzeige:**
    - Ein permanenter Indikator in der Statusleiste (Grün = Verbunden, Rot = Verbindung zum Host unterbrochen).
+
+---
+
+## 9. Derail Valley Stammdaten & Nomenklatur (Domain-Modell)
+
+Damit das System die Spielwelt von Derail Valley korrekt abbildet, müssen alle Stationen, Gleisbezeichnungen und Fahrzeuge strikt folgenden Bezeichnungen und Validierungsregeln entsprechen.
+
+---
+
+### 9.1 Stationen & Kürzel (Master Data)
+
+Alle Frachtaufträge und Fahrzeugstandorte müssen auf diese vordefinierten Stationskürzel zugreifen:
+
+| Station Name | Kürzel | Typ / Besonderheiten |
+| :--- | :---: | :--- |
+| **Harbor & Military Base** | `HB` | Großer Hafen, Militärbereich, Container & Öl |
+| **Goods Factory & Town** | `GF` | Güterfabrik, Stadtbereich |
+| **Steel Mill** | `CS` | Stahlwerk (City Steel), Erz & Metallverarbeitung |
+| **Food Factory & Town** | `FF` | Lebensmittelfabrik |
+| **Sawmill** | `SW` | Sägewerk, Holzverarbeitung |
+| **Machine Factory & Town** | `MF` | Maschinenfabrik |
+| **Coal Mine** | `CM` | Kohlemine |
+| **Iron Ore Mine East** | `IME` | Eisenerzmine Ost |
+| **Iron Ore Mine West** | `IMW` | Eisenerzmine West |
+| **Forest South** | `FS` | Forstwirtschaft Süd |
+| **Farm** | `FM` | Landwirtschaft |
+| **Oil Well Central** | `OWC` | Ölquelle Central |
+| **Oil Refinery** | `OR` | Ölraffinerie |
+
+#### Gleis-Nomenklatur Syntax
+Gleisnamen folgen im Spiel immer dem Schema `[STATION]-[PARK-GLEIS][NUMMER][RICHTUNG]`:
+- **Beispiele:** `GF-A1L` (Goods Factory, Gleis A1 Links), `CS-B2S` (Steel Mill, Gleis B2 Shunting/Rangiergleis), `HB-D3O` (Harbor Outbound).
+- **Validation-Regex für Backend:** `^[A-Z]{2,3}-[A-Z][0-9]{1,2}[L|S|O|I]?$`
+
+---
+
+### 9.2 Triebfahrzeuge / Lokomotiven (Fleet Master Data)
+
+Das System muss folgende Lokomotiv-Typen nativ unterstützen und unterscheiden können:
+
+| Fahrzeug-Bezeichnung | Typ / Klasse | Antriebsart | Einsatzbereich / Rolle |
+| :--- | :---: | :---: | :--- |
+| **Microshunter** | `BE2` | Elektro (Batterie) | Leichtes Rangieren auf Kurzstrecken |
+| **Shunter** | `DE2` | Diesel-Elektrik | Rangierlok & leichte Übergabefahrten |
+| **Road Switcher** | `DH4` | Diesel-Hydraulik | Mittelschwere Strecken- & Rangierdienste |
+| **Heavy Freight** | `DE6` | Diesel-Elektrik | Schwere Güterzüge / Hauptstrecken |
+| **Heavy Diesel Slug** | `DE6 Slug` | Traktionserweiterung | Zusatz-Schubkraft für DE6 auf Steigungen |
+| **Steam Locomotive (Light)** | `S060` | Dampf | Rangier- Dampflok |
+| **Steam Locomotive (Heavy)** | `S282` | Dampf | schwere Strecken-Dampflok |
+| **Handcar** | `HC` | Manuell | Draisinen-Fahrzeug für Inspektionen |
+
+---
+
+### 9.3 Auftragstypen & Frachtklassen (Job Master Data)
+
+Aufträge sind im Spiel standardmäßig in vordefinierte Kategorien unterteilt, müssen aber im System flexibel erweiterbar sein:
+
+1. **Shunting Job (`SH`):** Rangieren von Wagen innerhalb einer Station (z. B. Zusammenstellen eines Zuges von Aufstellgleis `A` nach `B`).
+2. **Logistics Job (`LOG`):** Transport von Leerwagen von einer Station zu einer anderen.
+3. **Freight Job (`FR`):** Transport beladener Güterwagen von Start-Station zu Ziel-Station.
+4. **Concurrent / Multi-Jobs (`MULTI`):** Kombination mehrerer Teilaufträge zu einem Gesamtzug.
+5. **Custom Jobs (`CUST`):** Manuell erstellte oder Mod-basierte Sonderaufträge.
+
+#### Weisung für Custom Jobs (Freie & Mod-Aufträge)
+Das Backend und die Datenbank müssen die Erstellung frei definierter **Custom Jobs** (z. B. durch Spieler A / Host oder über Mod-Schnittstellen wie *DV Job Modder*) unterstützen.
+
+- **Flexible Parameter-Eingabe:** Custom Jobs müssen nicht zwingend an die vordefinierten Frachtgut-Listen gebunden sein. Felder wie Frachtbeschreibung, Tonnage, Wagenanzahl und Vergütung müssen frei editierbar sein.
+- **Beliebige Routing-Punkte:** Ein Custom Job kann individuelle Start- und Zielorte (auch Freitext-Gleisbezeichnungen) beinhalten, die über die Standard-Stationskürzel hinausgehen.
+- **Kennzeichnung im UI:** Custom Jobs müssen auf dem Job Board durch ein visuelles Badge (`CUSTOM`) hervorgehoben werden, damit Operatoren sofort erkennen, dass es sich um ein manuelles oder spezialisiertes Logistik-Szenario handelt.
+- **Admin-Exklusivität:** Das Erstellen, Klonen, Bearbeiten und Löschen von Custom Jobs ist ausschließlich der Rolle **Host/Admin (Spieler A)** vorbehalten.
