@@ -68,3 +68,29 @@ Wenn du auf diese Datei reagierst:
 1. **Keine übereilten Code-Dumps:** Frage zuerst nach Unklarheiten oder schlage die Architektur vor.
 2. **Modularer Aufbau:** Trenne strikt nach `models/`, `backend/`, `frontend/` und `common/`.
 3. **Schrittweise Entwicklung:** Beginne mit dem **Datenmodell (Pydantic / SQLAlchemy)** und der **WebSocket/API-Schnittstelle** für die Auftragsvergabe, bevor das UI gebaut wird.
+
+---
+
+## 6. Logik-Spezifikation: Zeitgleiches Auftrags-Claiming (Race Conditions)
+
+### Problemstellung
+Mehrere Operatoren (Spieler B, C, D) sehen zeitgleich dieselben verfügbaren Aufträge im Frontend. Es muss strikt verhindert werden, dass zwei Spieler durch zeitgleiches Klicken denselben Auftrag annehmen.
+
+### Anweisungen für das Backend-Design
+1. **Zentrales Atomic Locking:**
+   - Die Prüfung und Vergabe eines Auftrags darf AUSSCHLIESSLICH serverseitig über eine atomare Transaktion (z. B. Mutex-Locking oder Datenbank-Locks) erfolgen.
+   - Frontend-Prüfungen reichen nicht aus.
+
+2. **Ablauf eines Claim-Vorgangs:**
+   - **Schritt 1:** Client sendet Claim-Anfrage an den Host/Server.
+   - **Schritt 2:** Server sperrt den Auftrags-Datensatz temporär für andere Zugriffe.
+   - **Schritt 3:** Server prüft Status. Ist der Auftrag noch `UNCLAIMED`, wird er auf `CLAIMED` gesetzt und dem Spieler zugewiesen. Ist er bereits vergeben, wird die Anfrage abgelehnt.
+   - **Schritt 4:** Server hebt die Sperre auf und sendet das Ergebnis an den anfragenden Client.
+
+3. **Echtzeit-Synchronisation (WebSockets):**
+   - Bei erfolgreichem Claim MUSS der Server sofort ein Event an ALLE verbundenen Clients broadcasten.
+   - Das Frontend aller Clients muss den Status des Auftrags ohne manuelles Neuladen sofort auf „Vergeben an [Spieler X]" aktualisieren und die Interaktion sperren.
+
+4. **Edge-Case Handling (Sonderfälle):**
+   - **Disconnect-Handling:** Bricht die Verbindung eines Players während eines aktiven Auftrags ab, soll nach einem konfigurierbaren Timeout der Auftrag automatisch wieder auf `UNCLAIMED` zurückgesetzt werden.
+   - **Freigabe:** Ein Operator muss die Möglichkeit haben, einen angenommenen Auftrag manuell wieder in den globalen Pool zurückzugeben.
