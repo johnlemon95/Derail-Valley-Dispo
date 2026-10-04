@@ -26,7 +26,7 @@ class ConnectionManager:
         return list(self._connections.keys())
 
     async def broadcast(self, event: str, data: dict) -> None:
-        payload = json.dumps({"event": event, "data": data})
+        payload = json.dumps({"event": event, "data": data}, default=str)
         dead: list[int] = []
         for pid, ws in list(self._connections.items()):
             try:
@@ -40,7 +40,7 @@ class ConnectionManager:
         ws = self._connections.get(player_id)
         if ws:
             try:
-                await ws.send_text(json.dumps({"event": event, "data": data}))
+                await ws.send_text(json.dumps({"event": event, "data": data}, default=str))
             except Exception:
                 self.disconnect(player_id)
 

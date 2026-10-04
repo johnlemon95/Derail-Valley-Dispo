@@ -17,7 +17,7 @@ def main() -> None:
             check=True,
         )
     else:
-        subprocess.run([sys.executable, "frontend/main.py"], check=True)
+        subprocess.run([sys.executable, "-m", "frontend.main"], check=True)
 
 
 if __name__ == "__main__":
